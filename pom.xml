@@ -8,7 +8,7 @@
         <groupId>org.springframework.boot</groupId>
         <version>2.7.3</version>
     </parent>
-    <groupId>com.sky</groupId>
+    <groupId>com.yorozuya</groupId>
     <artifactId>yorozuya-eats</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
@@ -116,7 +116,7 @@
                 <artifactId>poi-ooxml</artifactId>
                 <version>${poi}</version>
             </dependency>
-            <!--微信支付-->
+            <!-- 微信支付 -->
             <dependency>
                 <groupId>com.github.wechatpay-apiv3</groupId>
                 <artifactId>wechatpay-apache-httpclient</artifactId>
