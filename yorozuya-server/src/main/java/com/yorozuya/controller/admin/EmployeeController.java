@@ -1,6 +1,7 @@
 package com.yorozuya.controller.admin;
 
 import com.yorozuya.constant.JwtClaimsConstant;
+import com.yorozuya.dto.EmployeeDTO;
 import com.yorozuya.dto.EmployeeLoginDTO;
 import com.yorozuya.entity.Employee;
 import com.yorozuya.properties.JwtProperties;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 /**
  * 员工管理
+ * @author Ballauma
  */
 @RestController
 @RequestMapping("/admin/employee")
@@ -43,7 +45,7 @@ public class EmployeeController {
 
         Employee employee = employeeService.login(employeeLoginDTO);
 
-        //登录成功后，生成jwt令牌
+        // 登录成功后，生成 jwt 令牌
         Map<String, Object> claims = new HashMap<>();
         claims.put(JwtClaimsConstant.EMP_ID, employee.getId());
         String token = JwtUtil.createJWT(
@@ -71,4 +73,10 @@ public class EmployeeController {
         return Result.success();
     }
 
+    @PostMapping
+    public Result save(@RequestBody EmployeeDTO employeeDTO){
+        log.info("新增员工{}",employeeDTO);
+        employeeService.save(employeeDTO);
+        return Result.success();
+    }
 }

@@ -1,7 +1,10 @@
 package com.yorozuya.service.impl;
 
 import com.yorozuya.constant.MessageConstant;
+import com.yorozuya.constant.PasswordConstant;
 import com.yorozuya.constant.StatusConstant;
+import com.yorozuya.context.BaseContext;
+import com.yorozuya.dto.EmployeeDTO;
 import com.yorozuya.dto.EmployeeLoginDTO;
 import com.yorozuya.entity.Employee;
 import com.yorozuya.exception.AccountLockedException;
@@ -9,14 +12,41 @@ import com.yorozuya.exception.AccountNotFoundException;
 import com.yorozuya.exception.PasswordErrorException;
 import com.yorozuya.mapper.EmployeeMapper;
 import com.yorozuya.service.EmployeeService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
+import java.time.LocalDateTime;
+
+/**
+ * @author Ballauma
+ */
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private EmployeeMapper employeeMapper;
+
+    @Override
+    public void save(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+
+        BeanUtils.copyProperties(employeeDTO,employee);
+
+        //设置默认状态
+        employee.setStatus(StatusConstant.ENABLE);
+        employee.setCreateTime(LocalDateTime.now());
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
+
+        //设置修改人
+        //改为当前登录者ID
+        employee.setCreateUser(BaseContext.getCurrentId());
+        employee.setUpdateUser(BaseContext.getCurrentId());
+
+        employeeMapper.insert(employee);
+    }
 
     /**
      * 员工登录
@@ -24,6 +54,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param employeeLoginDTO
      * @return
      */
+    @Override
     public Employee login(EmployeeLoginDTO employeeLoginDTO) {
         String username = employeeLoginDTO.getUsername();
         String password = employeeLoginDTO.getPassword();
@@ -38,13 +69,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         //密码比对
-        // TODO 后期需要进行md5加密，然后再进行比对
+        // 对前端传过来的密码进行md5加密，然后再进行比对
+        password = DigestUtils.md5DigestAsHex(password.getBytes());
         if (!password.equals(employee.getPassword())) {
             //密码错误
             throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
         }
 
-        if (employee.getStatus() == StatusConstant.DISABLE) {
+        if (employee.getStatus() .equals(StatusConstant.DISABLE)) {
             //账号被锁定
             throw new AccountLockedException(MessageConstant.ACCOUNT_LOCKED);
         }
