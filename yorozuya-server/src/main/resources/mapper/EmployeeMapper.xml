@@ -2,6 +2,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.yorozuya.mapper.EmployeeMapper">
+    <update id="update">
+        update employee
+        set name = #{name},
+            username = #{username},
+            password = #{password},
+            phone = #{phone},
+            sex = #{sex},
+            id_number = #{idNumber},
+            status = #{status},
+            update_time = #{updateTime},
+            update_user = #{updateUser}
+        where id = #{id}
+    </update>
 
     <select id="pageQuery" resultType="com.yorozuya.entity.Employee">
         select * from employee
