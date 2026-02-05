@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * @author Ballauma
+ */
 @Data
 @Builder
 @NoArgsConstructor

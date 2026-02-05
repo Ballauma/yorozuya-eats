@@ -3,24 +3,24 @@ package com.yorozuya.controller.admin;
 import com.yorozuya.constant.JwtClaimsConstant;
 import com.yorozuya.dto.EmployeeDTO;
 import com.yorozuya.dto.EmployeeLoginDTO;
+import com.yorozuya.dto.EmployeePageQueryDTO;
 import com.yorozuya.entity.Employee;
 import com.yorozuya.properties.JwtProperties;
+import com.yorozuya.result.PageResult;
 import com.yorozuya.result.Result;
 import com.yorozuya.service.EmployeeService;
 import com.yorozuya.utils.JwtUtil;
 import com.yorozuya.vo.EmployeeLoginVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 员工管理
+ *
  * @author Ballauma
  */
 @RestController
@@ -74,9 +74,16 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public Result save(@RequestBody EmployeeDTO employeeDTO){
-        log.info("新增员工{}",employeeDTO);
+    public Result save(@RequestBody EmployeeDTO employeeDTO) {
+        log.info("新增员工{}", employeeDTO);
         employeeService.save(employeeDTO);
         return Result.success();
+    }
+
+    @GetMapping("/page")
+    public Result<PageResult> page(EmployeePageQueryDTO employeePageQueryDTO) {
+        log.info("员工分页查询{}",employeePageQueryDTO);
+        PageResult pageResult = employeeService.pageQuery(employeePageQueryDTO);
+        return Result.success(pageResult);
     }
 }
