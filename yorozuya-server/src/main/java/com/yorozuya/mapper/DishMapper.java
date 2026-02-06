@@ -1,5 +1,8 @@
 package com.yorozuya.mapper;
 
+import com.yorozuya.annotation.AutoFill;
+import com.yorozuya.entity.Dish;
+import com.yorozuya.enumeration.OperationType;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -9,13 +12,10 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface DishMapper {
 
-    /**
-     * 根据分类 id 查询菜品数量
-     *
-     * @param categoryId
-     * @return
-     */
+
     @Select("select count(id) from dish where category_id = #{categoryId}")
     Integer countByCategoryId(Long categoryId);
 
+    @AutoFill(value = OperationType.INSERT)
+    void insert(Dish dish);
 }

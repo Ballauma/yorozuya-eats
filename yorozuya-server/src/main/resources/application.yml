@@ -37,3 +37,8 @@ yorozuya:
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+  alioss:
+    access-key-id: ${yorozuya.alioss.access-key-id}
+    access-key-secret: ${yorozuya.alioss.access-key-secret}
+    endpoint: ${yorozuya.alioss.endpoint}
+    bucket-name: ${yorozuya.alioss.bucket-name}
