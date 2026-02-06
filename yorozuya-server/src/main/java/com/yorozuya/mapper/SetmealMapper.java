@@ -3,11 +3,15 @@ package com.yorozuya.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+/**
+ * @author Ballauma
+ */
 @Mapper
 public interface SetmealMapper {
 
     /**
-     * 根据分类id查询套餐的数量
+     * 根据分类 id 查询套餐的数量
+     *
      * @param id
      * @return
      */

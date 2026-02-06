@@ -5,7 +5,6 @@ import com.github.pagehelper.PageHelper;
 import com.yorozuya.constant.MessageConstant;
 import com.yorozuya.constant.PasswordConstant;
 import com.yorozuya.constant.StatusConstant;
-import com.yorozuya.context.BaseContext;
 import com.yorozuya.dto.EmployeeDTO;
 import com.yorozuya.dto.EmployeeLoginDTO;
 import com.yorozuya.dto.EmployeePageQueryDTO;
@@ -21,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -37,8 +35,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void update(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.update(employee);
     }
 
@@ -61,7 +57,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public void startOrStop(Integer status, long id) {
+    public void startOrStop(Integer status, Long id) {
         Employee employee = Employee.builder()
                 .id(id)
                 .status(status)
@@ -77,15 +73,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // 设置默认状态
         employee.setStatus(StatusConstant.ENABLE);
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
         employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
-
-        // 设置修改人
-        // 改为当前登录者 ID
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
-
         employeeMapper.insert(employee);
     }
 
