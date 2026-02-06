@@ -5,6 +5,8 @@ import com.yorozuya.dto.DishPageQueryDTO;
 import com.yorozuya.result.PageResult;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author Ballauma
  */
@@ -25,4 +27,11 @@ public interface DishService {
      * @return
      */
     PageResult pageQuery(DishPageQueryDTO dishPageQueryDTO);
+
+    /**
+     * 删除菜品
+     *
+     * @param ids
+     */
+    void deleteBatch(List<Long> ids);
 }
