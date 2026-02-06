@@ -4,3 +4,6 @@
 *.class
 *Test.java
 **/test/
+
+# Spring Boot application profiles
+application-dev.yml
