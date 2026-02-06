@@ -1,8 +1,11 @@
 package com.yorozuya.mapper;
 
+import com.github.pagehelper.Page;
 import com.yorozuya.annotation.AutoFill;
+import com.yorozuya.dto.DishPageQueryDTO;
 import com.yorozuya.entity.Dish;
 import com.yorozuya.enumeration.OperationType;
+import com.yorozuya.vo.DishVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -18,4 +21,6 @@ public interface DishMapper {
 
     @AutoFill(value = OperationType.INSERT)
     void insert(Dish dish);
+
+    Page<DishVO> pageQuery(DishPageQueryDTO dishPageQueryDTO);
 }
