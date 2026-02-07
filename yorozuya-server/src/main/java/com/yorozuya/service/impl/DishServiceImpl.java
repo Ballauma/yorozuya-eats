@@ -8,10 +8,12 @@ import com.yorozuya.dto.DishDTO;
 import com.yorozuya.dto.DishPageQueryDTO;
 import com.yorozuya.entity.Dish;
 import com.yorozuya.entity.DishFlavor;
+import com.yorozuya.entity.Setmeal;
 import com.yorozuya.exception.DeletionNotAllowedException;
 import com.yorozuya.mapper.DishFlavorMapper;
 import com.yorozuya.mapper.DishMapper;
 import com.yorozuya.mapper.SetmealDishMapper;
+import com.yorozuya.mapper.SetmealMapper;
 import com.yorozuya.result.PageResult;
 import com.yorozuya.service.DishService;
 import com.yorozuya.vo.DishVO;
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,6 +40,9 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     SetmealDishMapper setmealDishMapper;
+
+    @Autowired
+    SetmealMapper setmealMapper;
 
 
     /**
@@ -134,5 +140,32 @@ public class DishServiceImpl implements DishService {
                 .status(StatusConstant.ENABLE)
                 .build();
         return dishMapper.list(dish);
+    }
+
+    @Transactional
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+        dishMapper.update(dish);
+
+        if (status.equals(StatusConstant.DISABLE)) {
+            // 如果是停售操作，还需要将包含当前菜品的套餐也停售
+            List<Long> dishIds = new ArrayList<>();
+            dishIds.add(id);
+            // select setmeal_id from setmeal_dish where dish_id in (?,?,?)
+            List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(dishIds);
+            if (setmealIds != null && setmealIds.size() > 0) {
+                for (Long setmealId : setmealIds) {
+                    Setmeal setmeal = Setmeal.builder()
+                            .id(setmealId)
+                            .status(StatusConstant.DISABLE)
+                            .build();
+                    setmealMapper.update(setmeal);
+                }
+            }
+        }
     }
 }
