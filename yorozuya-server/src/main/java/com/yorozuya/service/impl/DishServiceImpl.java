@@ -3,6 +3,7 @@ package com.yorozuya.service.impl;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.yorozuya.constant.MessageConstant;
+import com.yorozuya.constant.StatusConstant;
 import com.yorozuya.dto.DishDTO;
 import com.yorozuya.dto.DishPageQueryDTO;
 import com.yorozuya.entity.Dish;
@@ -38,6 +39,11 @@ public class DishServiceImpl implements DishService {
     SetmealDishMapper setmealDishMapper;
 
 
+    /**
+     * 删除菜品
+     *
+     * @param ids
+     */
     @Override
     @Transactional
     public void deleteBatch(List<Long> ids) {
@@ -53,11 +59,9 @@ public class DishServiceImpl implements DishService {
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
         }
         // 删除菜品
-        for (Long id : ids) {
-            dishMapper.deleteBatch(id);
-            // 删除菜品口味
-            dishFlavorMapper.deleteBatchByDishIds(id);
-        }
+        dishMapper.deleteByIds(ids);
+        // 删除菜品口味
+        dishFlavorMapper.deleteBatchByDishIds(ids);
     }
 
     @Override
@@ -84,5 +88,51 @@ public class DishServiceImpl implements DishService {
             dishFlavorMapper.insertBatch(flavors);
         }
 
+    }
+
+    @Override
+    public DishVO getByIdWithFlavor(Long id) {
+        // 1 查询菜品 id
+        Dish dish = dishMapper.getById(id);
+
+        // 2 查询菜品的口味
+
+        List<DishFlavor> flavors = dishFlavorMapper.getByDishId(dish.getId());
+
+        // 3 封装 vo
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish, dishVO);
+        dishVO.setFlavors(flavors);
+
+        return dishVO;
+    }
+
+    @Override
+    @Transactional
+    public void updateWithFlavor(DishDTO dishDTO) {
+        // 1 更新菜品
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+        dishMapper.update(dish);
+
+        // 2 更新菜品口味
+        Long dishId = dishDTO.getId();
+        // 2.1 删除原有的口味
+        dishFlavorMapper.delete(dishId);
+        // 2.2 新增新的口味
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        if (!flavors.isEmpty()) {
+            flavors.forEach(flavor -> flavor.setDishId(dishId));
+            dishFlavorMapper.insertBatch(flavors);
+        }
+    }
+
+    @Override
+    public List<Dish> list(Long categoryId) {
+        Dish dish = Dish.builder()
+                .categoryId(categoryId)
+                .status(StatusConstant.ENABLE)
+                .build();
+        return dishMapper.list(dish);
     }
 }

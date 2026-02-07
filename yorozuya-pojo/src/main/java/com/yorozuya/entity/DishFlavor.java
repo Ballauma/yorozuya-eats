@@ -9,6 +9,7 @@ import java.io.Serializable;
 
 /**
  * 菜品口味
+ * @author Ballauma
  */
 @Data
 @Builder
@@ -19,13 +20,13 @@ public class DishFlavor implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    //菜品id
+    // 菜品 id
     private Long dishId;
 
-    //口味名称
+    // 口味名称
     private String name;
 
-    //口味数据list
+    // 口味数据 list
     private String value;
 
 }

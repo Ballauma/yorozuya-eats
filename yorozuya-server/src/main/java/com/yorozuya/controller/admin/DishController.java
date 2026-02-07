@@ -2,9 +2,12 @@ package com.yorozuya.controller.admin;
 
 import com.yorozuya.dto.DishDTO;
 import com.yorozuya.dto.DishPageQueryDTO;
+import com.yorozuya.entity.Dish;
 import com.yorozuya.result.PageResult;
 import com.yorozuya.result.Result;
 import com.yorozuya.service.DishService;
+import com.yorozuya.vo.DishVO;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -58,5 +61,43 @@ public class DishController {
         log.info("批量删除菜品");
         dishService.deleteBatch(ids);
         return Result.success();
+    }
+
+    /**
+     * 根据 id 查询菜品
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    public Result<DishVO> getById(@PathVariable Long id) {
+        log.info("根据id查询菜品");
+        DishVO dishVO = dishService.getByIdWithFlavor(id);
+        return Result.success(dishVO);
+    }
+
+    /**
+     * 更新菜品
+     *
+     * @param dishDTO
+     * @return
+     */
+    @PutMapping
+    public Result<DishVO> update(@RequestBody DishDTO dishDTO) {
+        log.info("更新菜品");
+        dishService.updateWithFlavor(dishDTO);
+        return Result.success();
+    }
+
+    /**
+     * 根据分类 id 查询菜品
+     *
+     * @param categoryId
+     * @return
+     */
+    @GetMapping("/list")
+    public Result<List<Dish>> list(Long categoryId) {
+        List<Dish> list = dishService.list(categoryId);
+        return Result.success(list);
     }
 }
