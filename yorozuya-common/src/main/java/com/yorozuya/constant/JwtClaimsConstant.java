@@ -1,5 +1,8 @@
 package com.yorozuya.constant;
 
+/**
+ * @author Ballauma
+ */
 public class JwtClaimsConstant {
 
     public static final String EMP_ID = "empId";

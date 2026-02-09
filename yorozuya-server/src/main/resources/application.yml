@@ -12,6 +12,10 @@ spring:
       url: jdbc:mysql://${yorozuya.datasource.host}:${yorozuya.datasource.port}/${yorozuya.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
       username: ${yorozuya.datasource.username}
       password: ${yorozuya.datasource.password}
+  redis:
+    host: ${yorozuya.redis.host}
+    port: ${yorozuya.redis.port}
+    password: ${yorozuya.redis.password}
 
 mybatis:
   #mapper 配置文件
@@ -32,13 +36,24 @@ logging:
 yorozuya:
   jwt:
     # 设置 jwt 签名加密时使用的秘钥
-    admin-secret-key: itcast
+    admin-secret-key: yorozuya
     # 设置 jwt 过期时间
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+    # 设置用户令牌的密钥
+    user-secret-key: yorozuya-user
+    # 设置用户令牌过期时间
+    user-ttl: 7200000
+    # 设置用户令牌的名称
+    user-token-name: authentication
+
   alioss:
     access-key-id: ${yorozuya.alioss.access-key-id}
     access-key-secret: ${yorozuya.alioss.access-key-secret}
     endpoint: ${yorozuya.alioss.endpoint}
     bucket-name: ${yorozuya.alioss.bucket-name}
+
+  wechat:
+    appid: ${yorozuya.wechat.appid}
+    secret: ${yorozuya.wechat.secret}

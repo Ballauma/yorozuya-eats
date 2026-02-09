@@ -1,6 +1,7 @@
 package com.yorozuya.config;
 
 import com.yorozuya.interceptor.JwtTokenAdminInterceptor;
+import com.yorozuya.interceptor.JwtTokenUserInterceptor;
 import com.yorozuya.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,9 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     @Autowired
     private JwtTokenAdminInterceptor jwtTokenAdminInterceptor;
 
+    @Autowired
+    private JwtTokenUserInterceptor jwtTokenUserInterceptor;
+
     /**
      * 注册自定义拦截器
      *
@@ -43,6 +47,10 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         registry.addInterceptor(jwtTokenAdminInterceptor)
                 .addPathPatterns("/admin/**")
                 .excludePathPatterns("/admin/employee/login");
+        registry.addInterceptor(jwtTokenUserInterceptor)
+                .addPathPatterns("/user/**")
+                .excludePathPatterns("/user/employee/login")
+                .excludePathPatterns("/user/shop/status");
     }
 
     /**
@@ -83,11 +91,11 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     @Override
     protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         log.info("扩展消息转换器");
-        //创建一个消息转换器
+        // 创建一个消息转换器
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        //创建一个对象转化器
+        // 创建一个对象转化器
         converter.setObjectMapper(new JacksonObjectMapper());
-        converters.add(0,converter);
+        converters.add(0, converter);
     }
 
 }

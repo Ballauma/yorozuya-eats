@@ -2,7 +2,9 @@ package com.yorozuya.service;
 
 import com.yorozuya.dto.SetmealDTO;
 import com.yorozuya.dto.SetmealPageQueryDTO;
+import com.yorozuya.entity.Setmeal;
 import com.yorozuya.result.PageResult;
+import com.yorozuya.vo.DishItemVO;
 import com.yorozuya.vo.SetmealVO;
 import org.springframework.stereotype.Service;
 
@@ -53,8 +55,27 @@ public interface SetmealService {
 
     /**
      * 套餐起售、停售
+     *
      * @param status
      * @param id
      */
     void startOrStop(Integer status, Long id);
+
+
+    /**
+     * 条件查询
+     *
+     * @param setmeal
+     * @return
+     */
+    List<Setmeal> list(Setmeal setmeal);
+
+    /**
+     * 根据 id 查询菜品选项
+     *
+     * @param id
+     * @return
+     */
+    List<DishItemVO> getDishItemById(Long id);
+
 }
