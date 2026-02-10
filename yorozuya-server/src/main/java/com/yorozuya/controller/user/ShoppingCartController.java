@@ -37,12 +37,38 @@ public class ShoppingCartController {
 
     /**
      * 查询购物车商品
+     *
      * @return
      */
     @GetMapping("/list")
-    public Result<List<ShoppingCart>> list(){
+    public Result<List<ShoppingCart>> list() {
         // 查询购物车商品
         List<ShoppingCart> list = shoppingCartService.list();
         return Result.success(list);
+    }
+
+    /**
+     * 清空购物车
+     *
+     * @return
+     */
+    @DeleteMapping("/clean")
+    public Result clean() {
+        // 清空购物车
+        shoppingCartService.clean();
+        return Result.success();
+    }
+
+    /**
+     * 减少购物车商品数量
+     *
+     * @param shoppingCartDTO
+     * @return
+     */
+    @PostMapping("/sub")
+    public Result sub(@RequestBody ShoppingCartDTO shoppingCartDTO) {
+        // 减少购物车商品数量
+        shoppingCartService.subShoppingCart(shoppingCartDTO);
+        return Result.success();
     }
 }
