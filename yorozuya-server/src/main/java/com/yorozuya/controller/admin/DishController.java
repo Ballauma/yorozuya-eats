@@ -10,9 +10,11 @@ import com.yorozuya.vo.DishVO;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Ballauma
@@ -23,6 +25,8 @@ import java.util.List;
 public class DishController {
     @Autowired
     DishService dishService;
+    @Autowired
+    RedisTemplate redisTemplate;
 
     /**
      * 新增菜品
@@ -33,6 +37,9 @@ public class DishController {
     @PostMapping
     public Result save(@RequestBody DishDTO dishDTO) {
         log.info("新增菜品");
+        // 清理菜品缓存
+        cleanCache("dish_" + dishDTO.getCategoryId());
+
         dishService.saveWithFlavor(dishDTO);
         return Result.success();
     }
@@ -59,6 +66,10 @@ public class DishController {
     @DeleteMapping
     public Result delete(@RequestParam List<Long> ids) {
         log.info("批量删除菜品");
+
+        // 清理菜品缓存
+        cleanCache("dish_*");
+
         dishService.deleteBatch(ids);
         return Result.success();
     }
@@ -85,6 +96,9 @@ public class DishController {
     @PutMapping
     public Result<DishVO> update(@RequestBody DishDTO dishDTO) {
         log.info("更新菜品");
+        // 清理菜品缓存
+        cleanCache("dish_*");
+
         dishService.updateWithFlavor(dishDTO);
         return Result.success();
     }
@@ -103,14 +117,23 @@ public class DishController {
 
     /**
      * 菜品起售停售
+     *
      * @param status
      * @param id
      * @return
      */
     @PostMapping("/status/{status}")
     @ApiOperation("菜品起售停售")
-    public Result<String> startOrStop(@PathVariable Integer status, Long id){
-        dishService.startOrStop(status,id);
+    public Result<String> startOrStop(@PathVariable Integer status, Long id) {
+        // 清理菜品缓存
+        cleanCache("dish_*");
+
+        dishService.startOrStop(status, id);
         return Result.success();
+    }
+
+    private void cleanCache(String pattern) {
+        Set keys = redisTemplate.keys(pattern);
+        redisTemplate.delete(keys);
     }
 }
