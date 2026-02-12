@@ -34,6 +34,10 @@ logging:
         controller: info
 
 yorozuya:
+  shop:
+    address: ${yorozuya.shop.address}
+  baidu:
+    ak: ${yorozuya.baidu.ak}
   jwt:
     # 设置 jwt 签名加密时使用的秘钥
     admin-secret-key: yorozuya
