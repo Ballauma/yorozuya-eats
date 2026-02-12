@@ -48,4 +48,16 @@ public class OrderController {
         return Result.success(orderPaymentVO);
     }
 
+
+    /**
+     * 【模拟支付】跳过微信支付逻辑，直接修改订单状态
+     * 专门用于本地测试
+     */
+    @GetMapping("/payment/skip/{ordersNumber}")
+    public Result<String> paymentSkip(@PathVariable String ordersNumber) throws Exception {
+        log.info("模拟支付订单：{}", ordersNumber);
+        orderService.paySuccess(ordersNumber);
+        return Result.success();
+    }
+
 }

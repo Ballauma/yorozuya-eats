@@ -57,3 +57,10 @@ yorozuya:
   wechat:
     appid: ${yorozuya.wechat.appid}
     secret: ${yorozuya.wechat.secret}
+    mchid: ${yorozuya.wechat.mchid}
+    mch-serial-no: ${yorozuya.wechat.mch-serial-no}
+    api-v3-key: ${yorozuya.wechat.api-v3-key}
+    privateKeyFilePath: ${yorozuya.wechat.privateKeyFilePath}
+    weChatPayCertFilePath: ${yorozuya.wechat.weChatPayCertFilePath}
+    notifyUrl: ${yorozuya.wechat.notifyUrl}
+    refundNotifyUrl: ${yorozuya.wechat.refundNotifyUrl}
