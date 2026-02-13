@@ -22,6 +22,7 @@ import com.yorozuya.vo.OrderPaymentVO;
 import com.yorozuya.vo.OrderStatisticsVO;
 import com.yorozuya.vo.OrderSubmitVO;
 import com.yorozuya.vo.OrderVO;
+import com.yorozuya.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,11 +56,13 @@ public class OrderServiceImpl implements OrderService {
     private AddressBookMapper addressBookMapper;
     @Autowired
     private WeChatPayUtil weChatPayUtil;
+    @Autowired
+    private WebSocketServer webSocketServer;
 
-    @Value("${sky.shop.address}")
+    @Value("${yorozuya.shop.address}")
     private String shopAddress;
 
-    @Value("${sky.baidu.ak}")
+    @Value("${yorozuya.baidu.ak}")
     private String ak;
 
 
@@ -150,6 +153,29 @@ public class OrderServiceImpl implements OrderService {
         return vo;
     }
 
+    /**
+     * 催单
+     *
+     * @param id
+     */
+    @Override
+    public void reminder(Long id) {
+        // 根据订单 id 查询订单
+        Orders orders = orderMapper.getById(id);
+
+
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        HashMap map = new HashMap<>();
+        map.put("type", 2);
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号：" + orders.getNumber());
+
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
+
+    }
 
     @Override
     public void paySuccess(String outTradeNo) {
@@ -166,6 +192,15 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+
+        // 通知 websocket 向客户端推送消息
+        HashMap map = new HashMap<>();
+        map.put("type", 1);
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号：" + outTradeNo);
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
     }
 
     /**
@@ -572,8 +607,8 @@ public class OrderServiceImpl implements OrderService {
         JSONArray jsonArray = (JSONArray) result.get("routes");
         Integer distance = (Integer) ((JSONObject) jsonArray.get(0)).get("distance");
 
-        if (distance > 5000) {
-            // 配送距离超过 5000 米
+        if (distance > 5000000) {
+            // 配送距离超过 5000000 米
             throw new OrderBusinessException("超出配送范围");
         }
     }
