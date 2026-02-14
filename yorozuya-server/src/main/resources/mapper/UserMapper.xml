@@ -18,4 +18,22 @@
             </if>
         </where>
     </select>
+
+
+    <!-- UserMapper.xml -->
+    <!-- 查询指定时间范围内，每天的新增用户数量 -->
+    <select id="countUserByDate" resultType="java.util.Map">
+        SELECT
+            DATE_FORMAT(create_time, '%Y-%m-%d') as date,
+            COUNT(*) as count
+        FROM user
+        WHERE create_time BETWEEN #{begin} AND #{end}
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+    </select>
+
+
+    <!-- 查询在这个时间段之前的总用户基数 -->
+    <select id="countBeforeDate" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM user WHERE create_time &lt; #{begin}
+    </select>
 </mapper>

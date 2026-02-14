@@ -4,6 +4,7 @@ import com.github.pagehelper.Page;
 import com.yorozuya.dto.OrdersPageQueryDTO;
 import com.yorozuya.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public interface OrderMapper {
 
     /**
      * 分页条件查询并按下单时间排序
+     *
      * @param ordersPageQueryDTO
      */
     Page<Orders> pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
@@ -33,6 +35,7 @@ public interface OrderMapper {
 
     /**
      * 根据状态统计订单数量
+     *
      * @param status
      */
     @Select("select count(id) from orders where status = #{status}")
@@ -41,6 +44,7 @@ public interface OrderMapper {
 
     /**
      * 根据状态和下单时间查询订单
+     *
      * @param status
      * @param orderTime
      * @return
@@ -50,4 +54,10 @@ public interface OrderMapper {
 
 
     Double sumByMap(Map map);
+
+    List<Map<String, Object>> sumTurnoverByDate(
+            @Param("begin") LocalDateTime begin,
+            @Param("end") LocalDateTime end,
+            @Param("status") Integer status
+    );
 }
