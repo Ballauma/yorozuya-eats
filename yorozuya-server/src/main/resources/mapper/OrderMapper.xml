@@ -80,6 +80,7 @@
             </if>
         </where>
     </select>
+
     <select id="sumTurnoverByDate" resultType="java.util.Map">
         SELECT DATE_FORMAT(order_time, '%Y-%m-%d') as date,
                SUM(amount)                         as turnover
@@ -87,6 +88,35 @@
         WHERE order_time BETWEEN #{begin} AND #{end}
           AND status = #{status}
         GROUP BY DATE_FORMAT(order_time, '%Y-%m-%d')
+    </select>
+    <select id="countOrderByDate" resultType="java.util.Map">
+        SELECT DATE_FORMAT(order_time, '%Y-%m-%d')                               as date,
+               COUNT(id)                                                         as totalOrders,
+               COUNT(CASE WHEN status = #{completedStatus} THEN 1 ELSE NULL END) as validOrders
+        FROM orders
+        WHERE order_time BETWEEN #{begin} AND #{end}
+        GROUP BY DATE_FORMAT(order_time, '%Y-%m-%d')
+        ORDER BY DATE_FORMAT(order_time, '%Y-%m-%d') ASC
+    </select>
+
+
+    <select id="getSalesTop10" resultType="java.util.Map">
+            SELECT
+                od.name,
+                SUM(od.number) AS number
+            FROM
+                order_detail od,
+                orders o
+            WHERE
+                od.order_id = o.id
+              AND o.status = 5
+              AND o.order_time &gt; #{begin}
+              AND o.order_time &lt; #{end}
+            GROUP BY
+                od.name
+            ORDER BY
+                number DESC
+            LIMIT 0, 10
     </select>
 
 </mapper>

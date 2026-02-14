@@ -2,6 +2,8 @@ package com.yorozuya.controller.admin;
 
 import com.yorozuya.result.Result;
 import com.yorozuya.service.ReportService;
+import com.yorozuya.vo.OrderReportVO;
+import com.yorozuya.vo.SalesTop10ReportVO;
 import com.yorozuya.vo.TurnoverReportVO;
 import com.yorozuya.vo.UserReportVO;
 import lombok.extern.slf4j.Slf4j;
@@ -58,5 +60,41 @@ public class ReportController {
         UserReportVO userReportVO = reportService.getUserStatistics(begin, end);
 
         return Result.success(userReportVO);
+    }
+
+
+    /**
+     * 获取订单报表
+     *
+     * @param begin
+     * @param end
+     * @return
+     */
+    @GetMapping("/ordersStatistics")
+    public Result<OrderReportVO> orderStatistics(
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
+        log.info("获取订单报表");
+        OrderReportVO orderReportVO = reportService.getOrderStatistics(begin, end);
+
+        return Result.success(orderReportVO);
+    }
+
+
+    /**
+     * 获取销量 Top10 报表
+     *
+     * @param begin
+     * @param end
+     * @return
+     */
+    @GetMapping("/top10")
+    public Result<SalesTop10ReportVO> salesTop10Statistics(
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
+        log.info("获取销量 Top10 报表");
+        SalesTop10ReportVO salesTop10ReportVO = reportService.getSalesTop10(begin, end);
+
+        return Result.success(salesTop10ReportVO);
     }
 }

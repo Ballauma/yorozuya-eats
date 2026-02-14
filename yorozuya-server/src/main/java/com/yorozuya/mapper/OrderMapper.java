@@ -3,6 +3,7 @@ package com.yorozuya.mapper;
 import com.github.pagehelper.Page;
 import com.yorozuya.dto.OrdersPageQueryDTO;
 import com.yorozuya.entity.Orders;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -53,11 +54,23 @@ public interface OrderMapper {
     List<Orders> getByStatusAndOrderTime(Integer status, LocalDateTime orderTime);
 
 
-    Double sumByMap(Map map);
-
+    @MapKey("date")
     List<Map<String, Object>> sumTurnoverByDate(
             @Param("begin") LocalDateTime begin,
             @Param("end") LocalDateTime end,
             @Param("status") Integer status
+    );
+
+    @MapKey("date")
+    List<Map<String, Object>> countOrderByDate(
+            @Param("begin") LocalDateTime begin,
+            @Param("end") LocalDateTime end,
+            @Param("completedStatus") Integer completedStatus // 确保这里有这个参数
+    );
+
+
+    List<Map<String, Object>> getSalesTop10(
+            @Param("begin") LocalDateTime begin,
+            @Param("end") LocalDateTime end
     );
 }
