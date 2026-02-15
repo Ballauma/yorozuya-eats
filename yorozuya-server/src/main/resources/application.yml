@@ -34,6 +34,11 @@ logging:
         controller: info
 
 yorozuya:
+
+  deepseek:
+    api-key: ${yorozuya.deepseek.api-key}
+    base-url: ${yorozuya.deepseek.base-url}
+    model: ${yorozuya.deepseek.model}
   shop:
     address: ${yorozuya.shop.address}
   baidu:
@@ -68,3 +73,4 @@ yorozuya:
     weChatPayCertFilePath: ${yorozuya.wechat.weChatPayCertFilePath}
     notifyUrl: ${yorozuya.wechat.notifyUrl}
     refundNotifyUrl: ${yorozuya.wechat.refundNotifyUrl}
+
