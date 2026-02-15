@@ -69,8 +69,14 @@ public interface OrderMapper {
     );
 
 
+    @MapKey("id")
     List<Map<String, Object>> getSalesTop10(
             @Param("begin") LocalDateTime begin,
             @Param("end") LocalDateTime end
     );
+
+
+    Integer countByMap(Map map);
+
+    Double sumByMap(Map map);
 }
