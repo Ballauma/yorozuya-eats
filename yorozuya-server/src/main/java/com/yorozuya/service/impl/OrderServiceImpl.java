@@ -24,6 +24,8 @@ import com.yorozuya.vo.OrderSubmitVO;
 import com.yorozuya.vo.OrderVO;
 import com.yorozuya.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -65,69 +68,103 @@ public class OrderServiceImpl implements OrderService {
     @Value("${yorozuya.baidu.ak}")
     private String ak;
 
+    @Autowired
+    private RedissonClient redissonClient; // 1. 注入 Redisson 客户端
 
     @Transactional
     @Override
     public OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO) {
-        // 异常情况的处理（收货地址为空、购物车为空）
+        // 1. 基础校验（地址等）- 这些放锁外面，性能更好，没必要的请求直接拦在外面
         AddressBook addressBook = addressBookMapper.getById(ordersSubmitDTO.getAddressBookId());
         if (addressBook == null) {
             throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
         }
-
         checkOutOfRange(addressBook.getCityName() + addressBook.getDistrictName() + addressBook.getDetail());
 
         Long userId = BaseContext.getCurrentId();
-        ShoppingCart shoppingCart = new ShoppingCart();
-        shoppingCart.setUserId(userId);
 
-        // 查询当前用户的购物车数据
-        List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
-        if (shoppingCartList == null || shoppingCartList.size() == 0) {
-            throw new ShoppingCartBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
+        // 2.定义锁的 Key
+        // 这里的策略是：锁住当前用户。防止同一个用户瞬间下两单。
+        // 如果是为了防止“超卖”（抢库存），这里的 Key 应该是具体的商品 ID (lock:dish:123)。
+        // 但对于普通下单接口，防重复提交是第一要务。
+        String lockKey = "lock:order:" + userId;
+
+        // 3. 获取锁对象
+        RLock lock = redissonClient.getLock(lockKey);
+
+        try {
+            // 4. 【尝试加锁】
+            // 参数 1 (waitTime): 0 - 尝试获取锁，获取不到立刻报错，不等待（防重复提交就要快准狠）
+            // 参数 2 (leaseTime): 10 - 上锁后 10 秒自动解锁（防止服务器宕机死锁）
+            boolean isLocked = lock.tryLock(0, 10, TimeUnit.SECONDS);
+
+            if (!isLocked) {
+                // 如果没拿到锁，说明用户正在操作，或者是重复请求
+                throw new OrderBusinessException("订单处理中，请勿重复提交！");
+            }
+
+            // ==================  安全区开始 (只有拿到锁的请求能进来) ==================
+
+            // 5. 查询购物车 (业务逻辑保持不变)
+            ShoppingCart shoppingCart = new ShoppingCart();
+            shoppingCart.setUserId(userId);
+            List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
+            if (shoppingCartList == null || shoppingCartList.size() == 0) {
+                throw new ShoppingCartBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
+            }
+
+            // 6. 构造订单数据 (保持不变)
+            Orders order = new Orders();
+            BeanUtils.copyProperties(ordersSubmitDTO, order);
+            order.setPhone(addressBook.getPhone());
+            order.setAddress(addressBook.getDetail());
+            order.setConsignee(addressBook.getConsignee());
+            order.setNumber(String.valueOf(System.currentTimeMillis())); // 订单号
+            order.setUserId(userId);
+            order.setStatus(Orders.PENDING_PAYMENT);
+            order.setPayStatus(Orders.UN_PAID);
+            order.setOrderTime(LocalDateTime.now());
+
+            orderMapper.insert(order); // 插入订单
+
+            // 7. 订单明细 (保持不变)
+            List<OrderDetail> orderDetailList = new ArrayList<>();
+            for (ShoppingCart cart : shoppingCartList) {
+                OrderDetail orderDetail = new OrderDetail();
+                BeanUtils.copyProperties(cart, orderDetail);
+                orderDetail.setOrderId(order.getId());
+                orderDetailList.add(orderDetail);
+
+
+            }
+
+            orderDetailMapper.insertBatch(orderDetailList); // 批量插入
+
+            // 8. 清空购物车
+            shoppingCartMapper.deleteByUserId(userId);
+
+            // 9. 封装返回结果
+            return OrderSubmitVO.builder()
+                    .id(order.getId())
+                    .orderNumber(order.getNumber())
+                    .orderAmount(order.getAmount())
+                    .orderTime(order.getOrderTime())
+                    .build();
+
+            // ==================  安全区结束 ==================
+
+        } catch (InterruptedException e) {
+            // 线程中断异常处理
+            log.error("分布式锁获取异常", e);
+            throw new OrderBusinessException("系统繁忙，请稍后再试");
+        } finally {
+            // 10. 释放锁
+            // 必须判断：锁是否存在 && 是否是当前线程持有的锁
+            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
-
-        // 构造订单数据
-        Orders order = new Orders();
-        BeanUtils.copyProperties(ordersSubmitDTO, order);
-        order.setPhone(addressBook.getPhone());
-        order.setAddress(addressBook.getDetail());
-        order.setConsignee(addressBook.getConsignee());
-        order.setNumber(String.valueOf(System.currentTimeMillis()));
-        order.setUserId(userId);
-        order.setStatus(Orders.PENDING_PAYMENT);
-        order.setPayStatus(Orders.UN_PAID);
-        order.setOrderTime(LocalDateTime.now());
-
-        // 向订单表插入 1 条数据
-        orderMapper.insert(order);
-
-        // 订单明细数据
-        List<OrderDetail> orderDetailList = new ArrayList<>();
-        for (ShoppingCart cart : shoppingCartList) {
-            OrderDetail orderDetail = new OrderDetail();
-            BeanUtils.copyProperties(cart, orderDetail);
-            orderDetail.setOrderId(order.getId());
-            orderDetailList.add(orderDetail);
-        }
-
-        // 向明细表插入 n 条数据
-        orderDetailMapper.insertBatch(orderDetailList);
-
-        // 清理购物车中的数据
-        shoppingCartMapper.deleteByUserId(userId);
-
-        // 封装返回结果
-        OrderSubmitVO orderSubmitVO = OrderSubmitVO.builder()
-                .id(order.getId())
-                .orderNumber(order.getNumber())
-                .orderAmount(order.getAmount())
-                .orderTime(order.getOrderTime())
-                .build();
-
-        return orderSubmitVO;
     }
-
 
     @Override
     public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception {

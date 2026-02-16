@@ -124,6 +124,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
+
+        <!-- Redisson: Redis 的最强客户端 -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>3.23.4</version> <!-- 版本可以选新的 -->
+        </dependency>
     </dependencies>
 
     <build>

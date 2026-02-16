@@ -1,0 +1,30 @@
+package com.yorozuya.config;
+
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RedissonConfig {
+    @Value("${yorozuya.redis.host}")
+    private String host;
+    @Value("${yorozuya.redis.port}")
+    private String port;
+    @Value("${yorozuya.redis.password}")
+    private String password;
+
+    @Bean
+    public RedissonClient redissonClient() {
+        Config config = new Config();
+        // 单机模式
+        String prefix = "redis://";
+        config.useSingleServer()
+                .setAddress(prefix + host + ":" + port)
+                .setPassword(password)
+                .setDatabase(0);
+        return Redisson.create(config);
+    }
+}
